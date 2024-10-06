@@ -1,0 +1,15 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: springboot-bootstrap
+  datasource:
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    url: jdbc:h2:mem:bootapp;DB_CLOSE_DELAY=-1
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
