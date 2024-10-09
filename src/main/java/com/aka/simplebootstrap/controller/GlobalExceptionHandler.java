@@ -4,29 +4,40 @@ import com.aka.simplebootstrap.controller.exception.BookIdMismatchException;
 import com.aka.simplebootstrap.controller.exception.BookNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.net.URI;
+import java.time.Instant;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ BookNotFoundException.class })
-    protected ResponseEntity<Object> handleNotFound(
-            Exception ex, WebRequest request) {
-        return handleExceptionInternal(ex, "Book not found",
-                new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    public ProblemDetail  handleNotFound(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Book not Found");
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setInstance(URI.create("api/books"));
+        return problemDetail;
     }
 
     @ExceptionHandler({ BookIdMismatchException.class,
             ConstraintViolationException.class,
             DataIntegrityViolationException.class })
-    public ResponseEntity<Object> handleBadRequest(
-            Exception ex, WebRequest request) {
-        return handleExceptionInternal(ex, ex.getLocalizedMessage(),
-                new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    public ProblemDetail handleBadRequest(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getLocalizedMessage()
+        );
+        problemDetail.setInstance(URI.create("api/books/"));
+        problemDetail.setTitle("BAD REQUEST");
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
     }
 }
